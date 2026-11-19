@@ -589,3 +589,20 @@ Member actor = rq.getActor();
 Post post = postService.findById(id).get();
 post.checkActorCanModify(actor);
 ```
+
+### 78강 — 댓글 삭제는 작성자만
+#### [033](https://github.com/zoek1211/rest-api-4/commit/033) — 댓글 삭제는 작성자만 (RED)
+- `DELETE /api/v1/posts/{postId}/comments/{id}?actorId=` 는 댓글 작성자만 가능해야 한다. 다른 회원은 403 `403-1`(글 작성자 포함), actorId 가 없으면 401 `401-1`.
+- 기존 삭제 테스트(t3)는 댓글 작성자(id 3)의 actorId 를 넘기도록 고쳤다. 새 테스트 t15(403), t16(글 작성자라도 403), t17(401) 추가.
+- 이 태그에서는 테스트가 실패하는 것이 정상(삭제 API 가 아직 액터를 확인하지 않아 t15, t16, t17 이 200 을 받는다).
+```java
+// 글 작성자(user1, id 3)라도 남(user2)의 댓글은 못 지운다 -> 403
+delete("/api/v1/posts/1/comments/2?actorId=3")
+    .andExpect(status().isForbidden())
+    .andExpect(jsonPath("$.resultCode").value("403-1"));
+
+// actorId 없음 -> 401
+delete("/api/v1/posts/1/comments/1")
+    .andExpect(status().isUnauthorized())
+    .andExpect(jsonPath("$.resultCode").value("401-1"));
+```

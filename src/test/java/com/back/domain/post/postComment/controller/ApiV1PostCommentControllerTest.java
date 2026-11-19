@@ -95,7 +95,7 @@ public class ApiV1PostCommentControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        delete("/api/v1/posts/%d/comments/%d?actorId=3".formatted(postId, id)) // 댓글 1번의 작성자(user1, id 3)
                 )
                 .andDo(print());
 
@@ -253,6 +253,37 @@ public class ApiV1PostCommentControllerTest {
                                         """)
                 )
                 .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, 작성자가 아닌 회원이면 403")
+    void t15() throws Exception {
+        // 댓글 1번은 user1(id 3)이 썼다. user2(id 4)는 작성자가 아니다.
+        mvc.perform(delete("/api/v1/posts/1/comments/1?actorId=4"))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, 글 작성자라도 댓글 작성자가 아니면 403")
+    void t16() throws Exception {
+        // 댓글 2번은 user2(id 4)가 썼고, 글 1번의 작성자는 user1(id 3)이다. 글 작성자여도 남의 댓글은 못 지운다.
+        mvc.perform(delete("/api/v1/posts/1/comments/2?actorId=3"))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, actorId 가 없으면 401")
+    void t17() throws Exception {
+        mvc.perform(delete("/api/v1/posts/1/comments/1"))
+                .andExpect(handler().methodName("delete"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
