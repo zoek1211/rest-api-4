@@ -240,3 +240,20 @@ public MemberDto me(int actorId) {
     return new MemberDto(loginMember);
 }
 ```
+
+#### [012](https://github.com/zoek1211/rest-api-4/commit/012) — UnauthenticatedException 도입
+
+- 존재하지 않는 actorId 는 `.get()` 대신 `orElseThrow(UnauthenticatedException::new)` 로 처리한다.
+- 아직 핸들러가 없어서 이 예외는 처리되지 않고 500 이 된다. 401 변환은 다음 커밋(013)에서 한다.
+
+```java
+public class UnauthenticatedException extends RuntimeException {
+    public UnauthenticatedException() {
+        super("로그인 후 이용해주세요.");
+    }
+}
+
+Member loginMember = memberService.findById(actorId).orElseThrow(
+        UnauthenticatedException::new
+);
+```
