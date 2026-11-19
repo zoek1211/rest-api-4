@@ -36,7 +36,7 @@ public class ApiV1PostControllerTest {
     void t1() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -67,7 +67,7 @@ public class ApiV1PostControllerTest {
     void t7() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -94,7 +94,7 @@ public class ApiV1PostControllerTest {
     void t8() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -128,7 +128,7 @@ public class ApiV1PostControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(wrongJsonBody)
                 )
@@ -293,5 +293,67 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$[1].authorName").value("유저2"))
                 .andExpect(jsonPath("$[2].authorId").value(5))
                 .andExpect(jsonPath("$[2].authorName").value("유저3"));
+    }
+
+    @Test
+    @DisplayName("글 작성, actorId 의 회원이 작성자가 된다")
+    void t12() throws Exception {
+        // actorId=4 는 user2(유저2). 임시 고정 작성자 user1(id 3)과 달라야 "actorId 를 실제로 쓰는지" 검증된다.
+        mvc.perform(
+                        post("/api/v1/posts?actorId=4")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.authorId").value(4))
+                .andExpect(jsonPath("$.data.authorName").value("유저2"));
+    }
+
+    @Test
+    @DisplayName("글 작성, actorId 없음 -> 401")
+    void t13() throws Exception {
+        mvc.perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("글 작성, 존재하지 않는 actorId -> 401")
+    void t14() throws Exception {
+        mvc.perform(
+                        post("/api/v1/posts?actorId=999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 }
