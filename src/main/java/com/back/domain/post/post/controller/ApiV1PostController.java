@@ -115,7 +115,12 @@ public class ApiV1PostController {
             @PathVariable int id,
             @RequestBody @Valid PostModifyReqBody reqBody
     ) {
+        // 삭제와 같은 순서: 인증(401) -> 권한(403).
+        Member actor = rq.getActor();
+
         Post post = postService.findById(id).get();
+
+        post.checkActorCanModify(actor);
 
         postService.modify(post, reqBody.title, reqBody.content);
 

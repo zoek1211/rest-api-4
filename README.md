@@ -573,3 +573,19 @@ put("/api/v1/posts/1")
     .andExpect(status().isUnauthorized())
     .andExpect(jsonPath("$.resultCode").value("401-1"));
 ```
+#### [032](https://github.com/zoek1211/rest-api-4/commit/032) — 글 수정은 작성자만 (GREEN)
+- `Post.checkActorCanModify(actor)` 추가(76강 `checkActorCanDelete` 와 같은 패턴). 수정 컨트롤러가 `rq.getActor()`(401) 다음에 호출한다(403). 테스트 33개 모두 통과.
+- 작성자 비교를 `actor.equals(author)` 에서 id 비교(`actor.getId() != author.getId()`)로 바꿨고, `checkActorCanDelete` 에도 같은 비교를 적용했다(공통 private `checkActorIsAuthor`).
+- 이유: `author` 는 LAZY 라 Hibernate 프록시일 수 있고, `BaseEntity.equals` 는 `getClass()` 를 비교하므로 같은 회원이라도 프록시와 실제 클래스가 달라 false 가 될 수 있다. id 는 프록시에서도 안전하게 읽는다.
+```java
+public void checkActorCanModify(Member actor) { checkActorIsAuthor(actor); }
+
+private void checkActorIsAuthor(Member actor) {
+    if (actor.getId() != author.getId()) throw new AccessDeniedException();
+}
+
+// 컨트롤러
+Member actor = rq.getActor();
+Post post = postService.findById(id).get();
+post.checkActorCanModify(actor);
+```

@@ -43,9 +43,21 @@ public class Post extends BaseEntity {
         this.content = content;
     }
 
-    // 삭제 권한 규칙은 글(Post)이 가장 잘 안다. 컨트롤러에 if 를 두면 수정/다른 진입점마다 중복되기 쉽다.
+    // 삭제/수정 권한 규칙은 글(Post)이 가장 잘 안다. 컨트롤러에 if 를 두면 진입점마다 중복되기 쉽다.
     public void checkActorCanDelete(Member actor) {
-        if (!actor.equals(author)) throw new AccessDeniedException();
+        checkActorIsAuthor(actor);
+    }
+
+    public void checkActorCanModify(Member actor) {
+        checkActorIsAuthor(actor);
+    }
+
+    // [학습] 엔티티 equals 대신 id 로 비교한다.
+    // author 는 LAZY 라서 Hibernate 프록시일 수 있고, BaseEntity.equals 는 getClass() 를 비교하므로
+    // 프록시(Member$HibernateProxy)와 실제 Member 가 서로 다른 클래스라 같은 회원인데도 false 가 될 수 있다.
+    // id 는 프록시에서도 DB 조회 없이 읽을 수 있어 안전하다.
+    private void checkActorIsAuthor(Member actor) {
+        if (actor.getId() != author.getId()) throw new AccessDeniedException();
     }
 
     public PostComment addComment(Member author, String content) {
