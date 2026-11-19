@@ -139,3 +139,16 @@ memberRepository.findByUsername(username)
             );
         });
 ```
+
+
+#### [006](https://github.com/zoek1211/rest-api-4/commit/006) — IllegalArgumentException 예외 처리
+
+- 전역 핸들러에 `IllegalArgumentException` 을 잡아 `409-1` 로 응답하는 핸들러를 추가한다. 메시지는 예외 메시지를 그대로 쓴다.
+- 단점: `IllegalArgumentException` 은 너무 흔한 예외라, 전혀 다른 곳에서 던져도 409 가 된다 (다음 커밋에서 전용 예외로 개선).
+
+```java
+@ExceptionHandler(IllegalArgumentException.class)
+public ResponseEntity<RsData<Void>> handle(IllegalArgumentException ex) {
+    return new ResponseEntity<>(new RsData<>("409-1", ex.getMessage()), CONFLICT);
+}
+```
