@@ -260,4 +260,38 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
     }
+
+
+    @Test
+    @DisplayName("글 단건조회, 작성자 정보 포함")
+    void t10() throws Exception {
+        // 샘플 데이터 전제(BaseInitData): 글1=user1(id 3), 글2=user2(id 4), 글3=user3(id 5)
+        // 기대값을 엔티티에서 꺼내지 않고 고정값으로 쓴다: 엔티티를 믿으면 "작성자가 올바른가" 를 검증할 수 없다.
+        String[][] expected = {{"3", "유저1"}, {"4", "유저2"}, {"5", "유저3"}};
+
+        for (int i = 0; i < expected.length; i++) {
+            int id = i + 1;
+
+            mvc.perform(get("/api/v1/posts/" + id))
+                    .andExpect(handler().handlerType(ApiV1PostController.class))
+                    .andExpect(handler().methodName("getItem"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.authorId").value(Integer.parseInt(expected[i][0])))
+                    .andExpect(jsonPath("$.authorName").value(expected[i][1]));
+        }
+    }
+
+    @Test
+    @DisplayName("글 다건조회, 작성자 정보 포함")
+    void t11() throws Exception {
+        mvc.perform(get("/api/v1/posts"))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].authorId").value(3))
+                .andExpect(jsonPath("$[0].authorName").value("유저1"))
+                .andExpect(jsonPath("$[1].authorId").value(4))
+                .andExpect(jsonPath("$[1].authorName").value("유저2"))
+                .andExpect(jsonPath("$[2].authorId").value(5))
+                .andExpect(jsonPath("$[2].authorName").value("유저3"));
+    }
 }

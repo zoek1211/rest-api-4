@@ -9,7 +9,9 @@ public record PostDto(
         LocalDateTime createDate,
         LocalDateTime modifyDate,
         String title,
-        String content
+        String content,
+        int authorId,
+        String authorName
 ) {
     public PostDto(Post post) {
         this(
@@ -17,7 +19,10 @@ public record PostDto(
                 post.getCreateDate(),
                 post.getModifyDate(),
                 post.getTitle(),
-                post.getContent()
+                post.getContent(),
+                // RED 스텁: 작성자 필드가 아직 엔티티에 없어 컴파일만 되도록 빈 값을 둔다. (020 에서 실제 값으로 교체)
+                0,
+                null
         );
     }
 }

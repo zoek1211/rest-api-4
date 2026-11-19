@@ -344,3 +344,23 @@ public void work1() {
     // ... user2, user3, user4
 }
 ```
+
+### 73강 — 글·댓글 작성자
+
+#### [019](https://github.com/zoek1211/rest-api-4/commit/019) — 글 응답에 작성자 (RED)
+
+- 글 조회 응답에 `authorId`, `authorName` 이 있고, 샘플 글 작성자가 글1=user1(id 3), 글2=user2(id 4), 글3=user3(id 5) 인지 검증하는 테스트(단건·다건)를 추가했다.
+- 기대값은 엔티티에서 꺼내지 않고 고정값으로 쓴다. 엔티티를 기준으로 삼으면 "작성자가 문제에 정해진 대로인가" 를 검증할 수 없다.
+- 컴파일을 위해 `PostDto` 에 `authorId`(0), `authorName`(null) 스텁 필드만 추가했다. 동작은 아직 없다.
+- 이 태그에서는 테스트가 실패하는 것이 정상 (작성자가 0/null 로 내려온다).
+
+```java
+String[][] expected = {{"3", "유저1"}, {"4", "유저2"}, {"5", "유저3"}};
+
+for (int i = 0; i < expected.length; i++) {
+    mvc.perform(get("/api/v1/posts/" + (i + 1)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.authorId").value(Integer.parseInt(expected[i][0])))
+            .andExpect(jsonPath("$.authorName").value(expected[i][1]));
+}
+```
