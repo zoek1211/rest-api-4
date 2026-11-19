@@ -471,3 +471,15 @@ post("/api/v1/posts/1/comments?actorId=4") ...
 .andExpect(status().isUnauthorized())
 .andExpect(jsonPath("$.resultCode").value("401-1"))
 ```
+#### [026](https://github.com/zoek1211/rest-api-4/commit/026) — 댓글 작성 액터 필요 (GREEN)
+- 댓글 작성 API 가 `actorId` 쿼리 파라미터로 회원을 찾아 작성자로 쓴다. user1 을 고정하던 `TODO(75강)` 코드를 제거했다.
+- 글 작성(074)과 같은 방식: 기본값 0 으로 누락을 "없는 회원"에 합치고, 없으면 `UnauthenticatedException`(401).
+- 이제 members/me, 글 작성, 댓글 작성 세 곳에 같은 조회 코드가 중복된다. 다음 커밋에서 `Rq` 로 모은다.
+```java
+@RequestParam(defaultValue = "0") int actorId
+...
+Member author = memberService.findById(actorId).orElseThrow(
+        UnauthenticatedException::new
+);
+PostComment postComment = postService.writeComment(post, author, reqBody.content);
+```

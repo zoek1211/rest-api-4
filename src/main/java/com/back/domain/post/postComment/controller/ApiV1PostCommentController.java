@@ -6,6 +6,7 @@ import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
+import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -111,13 +112,17 @@ public class ApiV1PostCommentController {
     @Operation(summary = "작성")
     public RsData<PostCommentDto> write(
             @PathVariable int postId,
-            @Valid @RequestBody PostCommentWriteReqBody reqBody
+            @Valid @RequestBody PostCommentWriteReqBody reqBody,
+            // 임시 인증 수단(docs/adr/0001): 누락 시 0 → 없는 회원 경로(401)로 합친다. (글 작성과 같은 방식)
+            @RequestParam(defaultValue = "0") int actorId
     ) {
         Post post = postService.findById(postId).get();
 
-        // TODO(75강): 임시 처리. 댓글 작성 API 도 아직 액터(actorId)를 받지 않으므로 샘플 회원 user1(id 3)을
-        //  작성자로 고정해 컴파일·동작만 유지한다. 75강에서 actorId 로 찾은 회원으로 교체한다.
-        Member author = memberService.findById(3).get();
+        // 댓글 작성은 로그인한 회원만 가능하다. actorId 의 회원이 없으면 401 을 던진다.
+        // 75강 리팩터링에서 이 중복 코드를 Rq 로 걷어낼 예정이라 지금은 컨트롤러에 그대로 둔다.
+        Member author = memberService.findById(actorId).orElseThrow(
+                UnauthenticatedException::new
+        );
 
         PostComment postComment = postService.writeComment(post, author, reqBody.content);
 
