@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
@@ -21,6 +23,7 @@ import java.util.List;
 @Tag(name = "ApiV1PostController", description = "API 글 컨트롤러")
 public class ApiV1PostController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -76,7 +79,11 @@ public class ApiV1PostController {
     public RsData<PostDto> write(
             @RequestBody @Valid PostWriteReqBody reqBody
     ) {
-        Post post = postService.write(reqBody.title, reqBody.content);
+        // TODO(74강): 임시 처리. 작성 API 가 아직 액터(actorId)를 받지 않으므로, 글에는 작성자가 필수인 이 강에서는
+        //  샘플 회원 user1(id 3)을 작성자로 고정해 컴파일·동작만 유지한다. 74강에서 actorId 로 찾은 회원으로 교체한다.
+        Member author = memberService.findById(3).get();
+
+        Post post = postService.write(author, reqBody.title, reqBody.content);
 
         return new RsData<>(
                 "201-1",

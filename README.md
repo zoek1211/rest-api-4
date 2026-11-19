@@ -364,3 +364,23 @@ for (int i = 0; i < expected.length; i++) {
             .andExpect(jsonPath("$.authorName").value(expected[i][1]));
 }
 ```
+
+#### [020](https://github.com/zoek1211/rest-api-4/commit/020) — 글 작성자 (GREEN)
+
+- `Post` 가 `Member author` 를 다대일(지연 로딩)로 가진다. 샘플 글은 `BaseInitData` 에서 글1=user1, 글2=user2, 글3=user3 으로 작성자를 지정한다.
+- `PostDto` 에는 `authorId`, `authorName` 만 추가한다. `Member` 를 통째로 내보내면 비밀번호 등이 응답에 섞이기 때문이다.
+- 임시 처리: 글 작성 API 는 74강 전까지 액터를 받지 않는다. 작성자가 필수가 되었으므로 컨트롤러에서 user1(id 3)을 작성자로 고정해 동작만 유지한다 (`TODO(74강)` 주석). 74강에서 actorId 로 찾은 회원으로 교체한다.
+
+```java
+// Post.java
+@ManyToOne(fetch = LAZY) // 목록 조회 시 회원까지 불필요하게 읽지 않는다
+private Member author;
+
+// PostDto.java
+post.getAuthor().getId(),
+post.getAuthor().getName()
+
+// ApiV1PostController.write — 74강에서 교체될 임시 처리
+Member author = memberService.findById(3).get();
+Post post = postService.write(author, reqBody.title, reqBody.content);
+```

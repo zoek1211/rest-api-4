@@ -20,9 +20,9 @@ public record PostDto(
                 post.getModifyDate(),
                 post.getTitle(),
                 post.getContent(),
-                // RED 스텁: 작성자 필드가 아직 엔티티에 없어 컴파일만 되도록 빈 값을 둔다. (020 에서 실제 값으로 교체)
-                0,
-                null
+                // 작성자는 id 와 name 만 노출한다. Member 통째로 내보내면 password 등이 응답에 섞인다.
+                post.getAuthor().getId(),
+                post.getAuthor().getName()
         );
     }
 }
