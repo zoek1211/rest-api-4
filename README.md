@@ -124,3 +124,18 @@ if (opMember.isPresent()) {
     );
 }
 ```
+
+
+#### [005](https://github.com/zoek1211/rest-api-4/commit/005) — Optional.ifPresent 로 모던하게 예외 발생
+
+- `isPresent()` + `if` 검사를 `ifPresent` 로 바꾼다. 동작은 그대로다.
+- 쓰지 않는 람다 파라미터는 `_` (Java 22+ unnamed variable) 로 표시한다.
+
+```java
+memberRepository.findByUsername(username)
+        .ifPresent(_ -> {
+            throw new IllegalArgumentException(
+                    "%s(은)는 이미 사용중인 username 입니다.".formatted(username)
+            );
+        });
+```
