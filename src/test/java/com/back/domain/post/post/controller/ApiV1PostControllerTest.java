@@ -170,13 +170,15 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 삭제")
+    @DisplayName("글 삭제, 작성자")
     void t3() throws Exception {
         int id = 1;
+        // 샘플 데이터: 1번 글의 작성자는 user1(id 3)
+        int actorId = 3;
 
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/" + id)
+                        delete("/api/v1/posts/" + id + "?actorId=" + actorId)
                 )
                 .andDo(print());
 
@@ -186,6 +188,44 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 삭제되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("글 삭제, 작성자가 아닌 회원은 403")
+    void t15() throws Exception {
+        int id = 1;
+        // user2(id 4)는 존재하는 회원이지만 1번 글의 작성자가 아니다. (인증은 됐으나 권한 없음 = 403)
+        int actorId = 4;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/" + id + "?actorId=" + actorId)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("글 삭제, actorId 없으면 401")
+    void t16() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/1")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 
 

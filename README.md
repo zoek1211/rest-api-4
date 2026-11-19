@@ -509,3 +509,22 @@ public class Rq {
 // 컨트롤러: actorId 파라미터와 조회 코드가 사라진다
 Member author = rq.getActor();
 ```
+
+### 76강 — 글 삭제는 작성자만
+#### [028](https://github.com/zoek1211/rest-api-4/commit/028) — 글 삭제는 작성자만 (RED)
+- `DELETE /api/v1/posts/{id}?actorId=` 는 글 작성자만 가능하다. 작성자가 아닌 회원은 403(`403-1`, `권한이 없습니다.`), `actorId` 가 없으면 401.
+- 기존 삭제 테스트(t3)는 작성자의 `actorId`(user1 = 3)를 넘기도록 고쳤다. 샘플 데이터: 1/2/3번 글은 user1(3)/user2(4)/user3(5) 가 작성.
+- 인증 실패(401, 누구인지 모름)와 권한 부족(403, 누구인지는 앎)을 구분해 테스트한다.
+- 이 태그에서는 테스트가 실패하는 것이 정상 (새 테스트 2개 실패: 403, 401).
+```java
+// 작성자가 아닌 회원: 존재하는 회원이지만 1번 글의 작성자가 아니다 -> 403
+delete("/api/v1/posts/1?actorId=4")
+    .andExpect(status().isForbidden())
+    .andExpect(jsonPath("$.resultCode").value("403-1"))
+    .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+// actorId 없음 -> 401
+delete("/api/v1/posts/1")
+    .andExpect(status().isUnauthorized())
+    .andExpect(jsonPath("$.resultCode").value("401-1"));
+```
