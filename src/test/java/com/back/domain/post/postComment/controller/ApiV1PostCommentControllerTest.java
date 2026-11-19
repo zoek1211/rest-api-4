@@ -113,9 +113,10 @@ public class ApiV1PostCommentControllerTest {
         int postId = 1;
         int id = 1;
 
+        // 댓글 1번의 작성자 user1(id 3) 이 actorId 로 요청해야 수정할 수 있다.
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        put("/api/v1/posts/%d/comments/%d?actorId=3".formatted(postId, id))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -284,6 +285,61 @@ public class ApiV1PostCommentControllerTest {
     void t17() throws Exception {
         mvc.perform(delete("/api/v1/posts/1/comments/1"))
                 .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 작성자가 아닌 회원이면 403")
+    void t18() throws Exception {
+        // 댓글 1번은 user1(id 3)이 썼다. user2(id 4)는 작성자가 아니다.
+        mvc.perform(
+                        put("/api/v1/posts/1/comments/1?actorId=4")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 글 작성자라도 댓글 작성자가 아니면 403")
+    void t19() throws Exception {
+        // 댓글 2번은 user2(id 4)가 썼고, 글 1번의 작성자는 user1(id 3)이다. 글 작성자여도 남의 댓글은 못 고친다.
+        mvc.perform(
+                        put("/api/v1/posts/1/comments/2?actorId=3")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"));
+    }
+
+    @Test
+    @DisplayName("댓글 수정, actorId 가 없으면 401")
+    void t20() throws Exception {
+        mvc.perform(
+                        put("/api/v1/posts/1/comments/1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("modify"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
