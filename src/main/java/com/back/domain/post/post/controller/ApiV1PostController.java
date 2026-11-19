@@ -4,6 +4,7 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,7 +53,13 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "삭제")
     public RsData<Void> delete(@PathVariable int id) {
+        // 순서: 먼저 누구인지 확인(401), 그다음 권한 확인(403).
+        Member actor = rq.getActor();
+
         Post post = postService.findById(id).get();
+
+        // 글 삭제는 작성자만 가능하다. 다른 회원이면 403.
+        if (!actor.equals(post.getAuthor())) throw new AccessDeniedException();
 
         postService.delete(post);
 

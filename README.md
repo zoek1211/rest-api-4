@@ -528,3 +528,17 @@ delete("/api/v1/posts/1")
     .andExpect(status().isUnauthorized())
     .andExpect(jsonPath("$.resultCode").value("401-1"));
 ```
+#### [029](https://github.com/zoek1211/rest-api-4/commit/029) — 글 삭제는 작성자만 (GREEN)
+- 새 예외 `AccessDeniedException`(`com.back.global.globalExceptionHandler`) + `GlobalExceptionHandler` 가 403 `403-1` 로 변환. Spring Security 의 같은 이름 클래스와는 무관하다(주석으로 명시).
+- 컨트롤러: 먼저 `rq.getActor()`(없으면 401), 그다음 작성자와 비교(다르면 403). 확인 순서는 인증 -> 권한.
+- 엔티티 비교는 `BaseEntity.equals`(id 기반)를 쓴다. 테스트 31개 모두 통과.
+```java
+Member actor = rq.getActor();            // 401
+Post post = postService.findById(id).get();
+if (!actor.equals(post.getAuthor())) throw new AccessDeniedException();  // 403
+
+@ExceptionHandler(AccessDeniedException.class)
+public ResponseEntity<RsData<Void>> handle(AccessDeniedException ex) {
+    return new ResponseEntity<>(new RsData<>("403-1", ex.getMessage()), FORBIDDEN);
+}
+```

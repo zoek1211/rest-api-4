@@ -83,4 +83,16 @@ public class GlobalExceptionHandler {
                 UNAUTHORIZED
         );
     }
+
+    // 로그인은 됐지만 권한이 없는 요청은 403 Forbidden. 인증 실패(401)와 다르다.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RsData<Void>> handle(AccessDeniedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "403-1",
+                        ex.getMessage()
+                ),
+                FORBIDDEN
+        );
+    }
 }
