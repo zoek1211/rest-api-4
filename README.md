@@ -675,3 +675,15 @@ postService.modifyComment(postComment, reqBody.content);
 #### [037](https://github.com/zoek1211/rest-api-4/commit/037) — 4부 정리 (REFACTOR)
 - 남은 중복(`Post`/`PostComment` 의 `checkActorIsAuthor`)을 검토했지만, 각자 자기 `author` 를 비교하는 두 줄이라 추출하지 않고 그대로 두었다. 동작 변경 없음.
 - README 에 "4부 정리" 섹션(회원/액터/작성자, Rq, 엔티티 권한 검사, 401 vs 403 흐름)을 추가했다. 테스트 39개 모두 통과.
+
+### 리뷰 반영
+#### [038](https://github.com/zoek1211/rest-api-4/commit/038) — 액터 확인 순서와 누락된 401/400 테스트 (RED)
+- 코드 리뷰(이슈 #47) 반영. 댓글 작성은 글을 먼저 찾아서, 글이 없고 actorId 도 없으면 401 이 아니라 404 가 나온다. 다른 API 는 401 → 404 → 403 순서다.
+- 빠져 있던 커버리지도 추가: 존재하지 않는 actorId 의 글 수정/삭제·댓글 수정/삭제 401, 회원가입 검증 실패 400 `400-1`.
+- 이 태그에서는 테스트가 실패하는 것이 정상(댓글 작성 순서 테스트 1개가 404 를 받는다). 나머지 새 테스트는 이미 통과한다.
+```java
+// 존재하지 않는 글 + actorId 없음 -> 액터 확인(401)이 먼저여야 한다
+post("/api/v1/posts/999999/comments")
+    .andExpect(status().isUnauthorized())
+    .andExpect(jsonPath("$.resultCode").value("401-1"));
+```

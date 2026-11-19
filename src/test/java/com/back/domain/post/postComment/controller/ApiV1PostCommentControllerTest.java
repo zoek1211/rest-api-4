@@ -344,4 +344,47 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
+
+    @Test
+    @DisplayName("댓글 작성, 존재하지 않는 글 + actorId 누락이면 404 가 아니라 401 (액터 확인이 먼저)")
+    void t21() throws Exception {
+        mvc.perform(
+                        post("/api/v1/posts/999999/comments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 존재하지 않는 actorId 면 401")
+    void t22() throws Exception {
+        mvc.perform(
+                        put("/api/v1/posts/1/comments/1?actorId=999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, 존재하지 않는 actorId 면 401")
+    void t23() throws Exception {
+        mvc.perform(delete("/api/v1/posts/1/comments/1?actorId=999999"))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
+    }
 }

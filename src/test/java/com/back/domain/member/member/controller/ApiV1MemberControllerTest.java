@@ -188,4 +188,24 @@ public class ApiV1MemberControllerTest {
                     .andExpect(jsonPath("$.password").doesNotExist());
         }
     }
+
+    @Test
+    @DisplayName("회원가입, 검증 실패(username 너무 짧음) 시 400")
+    void t6() throws Exception {
+        mvc.perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "ab",
+                                            "password": "12345678",
+                                            "name": "유저10"
+                                        }
+                                        """)
+                )
+                .andDo(print())
+                .andExpect(handler().methodName("join"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"));
+    }
 }

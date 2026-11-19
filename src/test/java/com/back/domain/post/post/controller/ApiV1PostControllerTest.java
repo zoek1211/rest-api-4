@@ -450,4 +450,31 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
+
+    @Test
+    @DisplayName("글 수정, 존재하지 않는 actorId -> 401")
+    void t19() throws Exception {
+        mvc.perform(
+                        put("/api/v1/posts/1?actorId=999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
+    }
+
+    @Test
+    @DisplayName("글 삭제, 존재하지 않는 actorId -> 401")
+    void t20() throws Exception {
+        mvc.perform(delete("/api/v1/posts/1?actorId=999999"))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"));
+    }
 }
