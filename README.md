@@ -556,3 +556,20 @@ Member actor = rq.getActor();
 Post post = postService.findById(id).get();
 post.checkActorCanDelete(actor);
 ```
+
+### 77강 — 글 수정은 작성자만
+#### [031](https://github.com/zoek1211/rest-api-4/commit/031) — 글 수정은 작성자만 (RED)
+- `PUT /api/v1/posts/{id}?actorId=` 는 작성자만 가능해야 한다. 작성자가 아닌 회원은 403 `403-1`, actorId 가 없으면 401 `401-1`.
+- 기존 수정 테스트(t2)는 작성자(id 3)의 actorId 를 넘기도록 고쳤다. 새 테스트 t17(403), t18(401) 추가.
+- 이 태그에서는 테스트가 실패하는 것이 정상(수정 API 가 아직 액터를 확인하지 않아 t17, t18 이 200 을 받는다).
+```java
+// 작성자가 아닌 회원 -> 403
+put("/api/v1/posts/1?actorId=4")
+    .andExpect(status().isForbidden())
+    .andExpect(jsonPath("$.resultCode").value("403-1"));
+
+// actorId 없음 -> 401
+put("/api/v1/posts/1")
+    .andExpect(status().isUnauthorized())
+    .andExpect(jsonPath("$.resultCode").value("401-1"));
+```
