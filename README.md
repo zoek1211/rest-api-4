@@ -443,3 +443,15 @@ post("/api/v1/posts?actorId=4") ...
 .andExpect(status().isUnauthorized())
 .andExpect(jsonPath("$.resultCode").value("401-1"))
 ```
+#### [024](https://github.com/zoek1211/rest-api-4/commit/024) — 글 작성 액터 필요 (GREEN)
+- 글 작성 API 가 `actorId` 쿼리 파라미터로 회원을 찾아 작성자로 쓴다. 임시로 user1 을 고정하던 `TODO(74강)` 코드를 제거했다.
+- `ApiV1MemberController.me` 와 같은 방식: 기본값 0 으로 누락을 "없는 회원"에 합치고, 없으면 `UnauthenticatedException`(401) 을 던진다.
+- 댓글 작성은 여전히 user1 고정 (`TODO(75강)`). Rq 도입은 75강 리팩터링에서 한다.
+```java
+@RequestParam(defaultValue = "0") int actorId
+...
+Member author = memberService.findById(actorId).orElseThrow(
+        UnauthenticatedException::new
+);
+Post post = postService.write(author, reqBody.title, reqBody.content);
+```

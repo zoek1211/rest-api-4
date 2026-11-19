@@ -5,6 +5,7 @@ import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,11 +78,15 @@ public class ApiV1PostController {
     @Transactional
     @Operation(summary = "작성")
     public RsData<PostDto> write(
-            @RequestBody @Valid PostWriteReqBody reqBody
+            @RequestBody @Valid PostWriteReqBody reqBody,
+            // 임시 인증 수단(docs/adr/0001): 누락 시 0 → 없는 회원 경로(401)로 합친다. (ApiV1MemberController.me 와 같은 방식)
+            @RequestParam(defaultValue = "0") int actorId
     ) {
-        // TODO(74강): 임시 처리. 작성 API 가 아직 액터(actorId)를 받지 않으므로, 글에는 작성자가 필수인 이 강에서는
-        //  샘플 회원 user1(id 3)을 작성자로 고정해 컴파일·동작만 유지한다. 74강에서 actorId 로 찾은 회원으로 교체한다.
-        Member author = memberService.findById(3).get();
+        // 글 작성은 로그인한 회원만 가능하다. actorId 의 회원이 없으면 401 을 던진다.
+        // 75강에서 이 중복 코드를 Rq 로 걷어낼 예정이라 지금은 컨트롤러에 그대로 둔다.
+        Member author = memberService.findById(actorId).orElseThrow(
+                UnauthenticatedException::new
+        );
 
         Post post = postService.write(author, reqBody.title, reqBody.content);
 
