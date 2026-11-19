@@ -40,6 +40,23 @@ Spring Boot 4 · JPA · H2 로 만든 글/댓글 REST API 에 **회원·액터·
 
 ---
 
+## 4부 정리
+
+- **회원 / 액터 / 작성자**: 회원(Member)은 가입한 사람, 액터(actor)는 *이번 요청을 보낸* 회원(`?actorId=`), 작성자(author)는 글·댓글을 *쓴* 회원이다. 권한 규칙은 "액터 == 작성자" 한 가지다. 용어는 `GLOSSARY.md`, 결정 배경은 `docs/adr/0001-actor-id-query-param.md` 참고.
+- **Rq 가 액터를 얻는 유일한 지점(seam)**: 컨트롤러는 `actorId` 파라미터를 직접 읽지 않고 `rq.getActor()` 만 부른다. 나중에 `actorId` 를 헤더/토큰으로 바꿔도 Rq 한 곳만 고치면 된다.
+- **권한 검사는 엔티티가**: `Post.checkActorCanDelete/Modify`, `PostComment.checkActorCanDelete/Modify` 가 규칙을 안다. 컨트롤러에는 `if` 가 없고, 비교는 LAZY 프록시를 고려해 엔티티 equals 대신 id 로 한다.
+- **401 vs 403 흐름**: 먼저 액터를 확인하고(없거나 무효 -> 401 `401-1`), 그다음 대상을 찾아 권한을 확인한다(작성자가 아님 -> 403 `403-1`). 글 작성자라도 남의 댓글은 지우거나 고칠 수 없다.
+- **중복 정리 여부**: `Post` 와 `PostComment` 의 `checkActorIsAuthor` 는 비슷해 보이지만 각자 자기 `author` 를 비교하는 두 줄이다. 공통 부모나 헬퍼로 빼면 오히려 읽는 흐름이 끊겨서 그대로 두었다.
+
+```java
+// 최종 컨트롤러 패턴 (수정/삭제 공통)
+Member actor = rq.getActor();               // 1) 누구인가? 없으면 401
+Post post = postService.findById(postId).get();
+PostComment comment = post.findCommentById(id).get();
+comment.checkActorCanModify(actor);         // 2) 해도 되는가? 아니면 403
+postService.modifyComment(comment, reqBody.content);
+```
+
 ## 커밋별 설명
 
 ### 셋업
@@ -654,3 +671,7 @@ PostComment postComment = post.findCommentById(id).get();
 postComment.checkActorCanModify(actor);  // 403
 postService.modifyComment(postComment, reqBody.content);
 ```
+
+#### [037](https://github.com/zoek1211/rest-api-4/commit/037) — 4부 정리 (REFACTOR)
+- 남은 중복(`Post`/`PostComment` 의 `checkActorIsAuthor`)을 검토했지만, 각자 자기 `author` 를 비교하는 두 줄이라 추출하지 않고 그대로 두었다. 동작 변경 없음.
+- README 에 "4부 정리" 섹션(회원/액터/작성자, Rq, 엔티티 권한 검사, 401 vs 403 흐름)을 추가했다. 테스트 39개 모두 통과.
