@@ -1,5 +1,6 @@
 package com.back.domain.member.member.controller;
 
+import com.back.domain.member.member.dto.MemberDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.global.rsData.RsData;
@@ -54,13 +55,13 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     @Transactional
     @Operation(summary = "내 정보")
-    public Member me(
+    public MemberDto me(
             int actorId
     ) {
         // 일단 .get() 으로 꺼낸다. 없는 회원이면 NoSuchElementException → 404 가 되는데, 이후 커밋에서 401 로 바로잡는다.
         Member loginMember = memberService.findById(actorId).get();
 
-        // 주의: 엔티티를 그대로 반환하면 password 까지 응답에 노출된다. (다음 커밋에서 DTO 로 해결)
-        return loginMember;
+        // 엔티티 대신 DTO 로 감싸 반환하므로 password 는 응답에 나가지 않는다.
+        return new MemberDto(loginMember);
     }
 }

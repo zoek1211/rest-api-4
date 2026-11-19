@@ -221,3 +221,22 @@ public Optional<Member> findById(int id) {
     return memberRepository.findById(id);
 }
 ```
+
+#### [011](https://github.com/zoek1211/rest-api-4/commit/011) — MemberDto 도입
+
+- 응답을 엔티티가 아닌 `MemberDto`(id, createDate, modifyDate, username, name)로 바꿔 `password` 노출을 막는다.
+- 엔티티를 그대로 내보내면 필드가 추가될 때마다 의도치 않게 응답에 새어 나간다. DTO 는 "내보낼 필드" 를 명시적으로 고정한다.
+
+```java
+public record MemberDto(int id, LocalDateTime createDate, LocalDateTime modifyDate, String username, String name) {
+    public MemberDto(Member member) {
+        this(member.getId(), member.getCreateDate(), member.getModifyDate(), member.getUsername(), member.getName());
+    }
+}
+
+// ApiV1MemberController
+public MemberDto me(int actorId) {
+    Member loginMember = memberService.findById(actorId).get();
+    return new MemberDto(loginMember);
+}
+```
