@@ -483,3 +483,29 @@ Member author = memberService.findById(actorId).orElseThrow(
 );
 PostComment postComment = postService.writeComment(post, author, reqBody.content);
 ```
+#### [027](https://github.com/zoek1211/rest-api-4/commit/027) — Rq 로 액터 조회 모으기 (REFACTOR)
+- members/me, 글 작성, 댓글 작성 세 곳에 중복되던 `actorId` 파라미터 + `findById(...).orElseThrow(...)` 를 요청 스코프 컴포넌트 `Rq`(`com.back.global.rq`)의 `getActor()` 로 모았다. 동작은 그대로(테스트 29개 모두 통과).
+- `@RequestScope`: 싱글톤 빈은 요청마다 다른 `HttpServletRequest` 를 필드로 가질 수 없다. 요청 스코프 빈은 요청마다 새로 만들어져 그 요청의 request 를 주입받는다.
+- 인증 교체의 이음새(ADR 0001): 지금은 `?actorId` 를 읽지만, 세션/JWT/Spring Security 로 바꿀 때는 `Rq.getActor()` 한 곳만 고치면 된다.
+- `actorId` 누락/빈 값/숫자 아님/없는 회원은 모두 `UnauthenticatedException`(401). (이전에는 숫자가 아니면 400 이었으나 이제 401 로 통일)
+```java
+@Component
+@RequestScope
+@RequiredArgsConstructor
+public class Rq {
+    private final HttpServletRequest req;
+    private final MemberService memberService;
+
+    public Member getActor() {
+        String actorIdStr = req.getParameter("actorId");
+        if (actorIdStr == null || actorIdStr.isBlank()) throw new UnauthenticatedException();
+        int actorId;
+        try { actorId = Integer.parseInt(actorIdStr.trim()); }
+        catch (NumberFormatException e) { throw new UnauthenticatedException(); }
+        return memberService.findById(actorId).orElseThrow(UnauthenticatedException::new);
+    }
+}
+
+// 컨트롤러: actorId 파라미터와 조회 코드가 사라진다
+Member author = rq.getActor();
+```

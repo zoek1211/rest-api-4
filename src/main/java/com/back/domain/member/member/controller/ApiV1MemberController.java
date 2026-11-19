@@ -3,7 +3,7 @@ package com.back.domain.member.member.controller;
 import com.back.domain.member.member.dto.MemberDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
-import com.back.global.globalExceptionHandler.UnauthenticatedException;
+import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "ApiV1MemberController", description = "API 회원 컨트롤러")
 public class ApiV1MemberController {
     private final MemberService memberService;
+    private final Rq rq;
 
     // 요청 본문 전용 record. 검증 규칙을 DTO 에 선언해 두면 @Valid 위반 시
     // MethodArgumentNotValidException → 400 으로 처리된다.
@@ -52,20 +53,13 @@ public class ApiV1MemberController {
         );
     }
 
-    // 아직 로그인(인증) 수단이 없으므로, 쿼리 파라미터 actorId 로 "누구인지" 를 임시로 전달받는다. (docs/adr/0001)
+    // 아직 로그인(인증) 수단이 없으므로 ?actorId 로 "누구인지" 를 임시로 전달받는다. (docs/adr/0001)
+    // 그 처리는 Rq.getActor() 가 맡으므로 컨트롤러는 actorId 를 직접 다루지 않는다.
     @GetMapping("/me")
     @Transactional
     @Operation(summary = "내 정보")
-    public MemberDto me(
-            // actorId 가 아예 없으면 기본값 0 을 쓴다. 0 번 회원은 존재하지 않으므로
-            // "없는 회원" 경로(401)로 합쳐져, 파라미터 누락이 400/500 이 되지 않는다.
-            @RequestParam(defaultValue = "0") int actorId
-    ) {
-        // 없는 회원이면 NoSuchElementException(404) 대신 UnauthenticatedException 을 던진다.
-        // (핸들러는 다음 커밋에서 추가하므로, 이 커밋에서는 아직 401 이 아니라 500 이 된다)
-        Member loginMember = memberService.findById(actorId).orElseThrow(
-                UnauthenticatedException::new
-        );
+    public MemberDto me() {
+        Member loginMember = rq.getActor();
 
         // 엔티티 대신 DTO 로 감싸 반환하므로 password 는 응답에 나가지 않는다.
         return new MemberDto(loginMember);
