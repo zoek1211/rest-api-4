@@ -26,7 +26,7 @@ public class Rq {
     private final HttpServletRequest req;
     private final MemberService memberService;
 
-    // 액터 = 이 요청을 보낸 회원. 아래 경우는 모두 "로그인하지 않음" 으로 보고 401 을 던진다.
+    // 액터 = 이 요청을 보낸 회원. 아래 경우는 모두 "인증 실패" 로 보고 401 을 던진다.
     // actorId 누락 / 빈 값 / 숫자가 아님 / 존재하지 않는 회원
     public Member getActor() {
         String actorIdStr = req.getParameter("actorId");

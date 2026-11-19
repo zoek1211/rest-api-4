@@ -694,3 +694,12 @@ post("/api/v1/posts/999999/comments")
 Member author = rq.getActor();                  // 401
 Post post = postService.findById(postId).get(); // 404
 ```
+
+#### [040](https://github.com/zoek1211/rest-api-4/commit/040) — 용어 정리와 BaseInitData 중복 조회 제거 (REFACTOR)
+- GLOSSARY 용어에 맞춰 `members/me` 의 지역 변수 `loginMember` 를 `actor` 로 바꿨다. 코드 주석의 "로그인 회원/로그인하지 않음/로그인은 됐지만" 도 액터·인증·권한 표현으로 고쳤다. 사용자에게 보이는 메시지 `로그인 후 이용해주세요.` 는 스펙된 응답이라 그대로다. 이전 커밋의 README 설명은 당시 기록이라 고치지 않았다.
+- `BaseInitData` 가 `memberService.findById(3/4/5)` 로 방금 만든 회원을 다시 조회하던 것을, `join` 이 돌려준 `Member` 를 필드에 보관해 재사용하도록 바꿨다. 회원 id 1~6 과 작성자는 그대로. 동작 변경 없음, 테스트 45개 모두 통과.
+```java
+user1 = memberService.join("user1", "12345678", "유저1");  // 반환값을 그대로 보관
+...
+postService.write(user1, "제목 1", "내용 1");               // work2 에서 재조회 없이 사용
+```

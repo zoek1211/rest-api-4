@@ -30,6 +30,11 @@ public class BaseInitData {
         };
     }
 
+    // work1 에서 만든 샘플 회원을 work2 가 그대로 쓰도록 필드에 보관한다. (id 로 다시 조회하지 않는다)
+    private Member user1;
+    private Member user2;
+    private Member user3;
+
     // 샘플 회원: id 가 저장 순서대로 1~6 이 되므로 아래 순서를 바꾸면 문서/테스트의 회원 번호가 어긋난다.
     @Transactional
     public void work1() {
@@ -38,9 +43,9 @@ public class BaseInitData {
 
         memberService.join("system", "12345678", "시스템");
         memberService.join("admin", "12345678", "관리자");
-        memberService.join("user1", "12345678", "유저1");
-        memberService.join("user2", "12345678", "유저2");
-        memberService.join("user3", "12345678", "유저3");
+        user1 = memberService.join("user1", "12345678", "유저1");
+        user2 = memberService.join("user2", "12345678", "유저2");
+        user3 = memberService.join("user3", "12345678", "유저3");
         memberService.join("user4", "12345678", "유저4");
     }
 
@@ -48,10 +53,8 @@ public class BaseInitData {
     public void work2() {
         if (postService.count() > 0) return;
 
-        // work1 에서 만든 샘플 회원을 id 로 꺼내 작성자로 지정한다. (user1=3, user2=4, user3=5)
-        Member user1 = memberService.findById(3).get();
-        Member user2 = memberService.findById(4).get();
-        Member user3 = memberService.findById(5).get();
+        // 재시작 등으로 work1 이 건너뛰어졌으면 user1~3 이 비어 있으므로 글도 만들지 않는다.
+        if (user1 == null) return;
 
         Post post1 = postService.write(user1, "제목 1", "내용 1");
         Post post2 = postService.write(user2, "제목 2", "내용 2");

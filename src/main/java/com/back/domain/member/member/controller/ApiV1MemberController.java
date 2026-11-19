@@ -53,15 +53,15 @@ public class ApiV1MemberController {
         );
     }
 
-    // 아직 로그인(인증) 수단이 없으므로 ?actorId 로 "누구인지" 를 임시로 전달받는다. (docs/adr/0001)
+    // 아직 인증 수단이 없으므로 ?actorId 로 액터(요청을 보낸 회원)를 임시로 전달받는다. (docs/adr/0001)
     // 그 처리는 Rq.getActor() 가 맡으므로 컨트롤러는 actorId 를 직접 다루지 않는다.
     @GetMapping("/me")
     @Transactional
     @Operation(summary = "내 정보")
     public MemberDto me() {
-        Member loginMember = rq.getActor();
+        Member actor = rq.getActor();
 
         // 엔티티 대신 DTO 로 감싸 반환하므로 password 는 응답에 나가지 않는다.
-        return new MemberDto(loginMember);
+        return new MemberDto(actor);
     }
 }

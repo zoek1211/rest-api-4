@@ -85,7 +85,7 @@ public class ApiV1PostController {
     public RsData<PostDto> write(
             @RequestBody @Valid PostWriteReqBody reqBody
     ) {
-        // 글 작성은 로그인한 회원만 가능하다. 액터를 얻는 방법은 Rq 가 알고 있다. (없으면 401)
+        // 글 작성은 액터가 있어야 가능하다. 액터를 얻는 방법은 Rq 가 알고 있다. (없으면 401)
         Member author = rq.getActor();
 
         Post post = postService.write(author, reqBody.title, reqBody.content);
