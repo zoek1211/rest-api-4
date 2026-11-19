@@ -140,4 +140,22 @@ public class ApiV1MemberControllerTest {
                 // 핵심: DTO 덕분에 password 는 응답에 아예 없어야 한다.
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
+
+    @Test
+    @DisplayName("내 정보 - with wrong actorId")
+    void t4() throws Exception {
+        // Integer.MAX_VALUE 는 존재하지 않는 회원번호로 쓰기에 충분하다.
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me?actorId=%d".formatted(Integer.MAX_VALUE))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
 }

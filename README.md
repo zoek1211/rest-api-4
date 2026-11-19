@@ -296,3 +296,14 @@ resultActions
         .andExpect(jsonPath("$.name").value(member.getName()))
         .andExpect(jsonPath("$.password").doesNotExist());
 ```
+
+#### [016](https://github.com/zoek1211/rest-api-4/commit/016) — 내 정보 실패 테스트
+
+- 존재하지 않는 actorId(`Integer.MAX_VALUE`)로 조회하면 `401-1` 과 `로그인 후 이용해주세요.` 가 오는지 검증한다.
+
+```java
+resultActions
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.resultCode").value("401-1"))
+        .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+```
