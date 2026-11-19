@@ -140,7 +140,7 @@ public class ApiV1PostCommentControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts/%d/comments".formatted(postId))
+                        post("/api/v1/posts/%d/comments?actorId=3".formatted(postId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -200,5 +200,61 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$[1].authorName").value("유저2"))
                 .andExpect(jsonPath("$[2].authorId").value(5))
                 .andExpect(jsonPath("$[2].authorName").value("유저3"));
+    }
+
+    @Test
+    @DisplayName("댓글 작성, actorId 회원이 작성자가 된다")
+    void t12() throws Exception {
+        // actorId=4 → 유저2. (임시 고정값 user1(3) 과 달라야 "actorId 를 실제로 쓴다" 는 것이 검증된다)
+        mvc.perform(
+                        post("/api/v1/posts/1/comments?actorId=4")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.authorId").value(4))
+                .andExpect(jsonPath("$.data.authorName").value("유저2"));
+    }
+
+    @Test
+    @DisplayName("댓글 작성, actorId 누락 시 401")
+    void t13() throws Exception {
+        mvc.perform(
+                        post("/api/v1/posts/1/comments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("댓글 작성, 존재하지 않는 actorId 면 401")
+    void t14() throws Exception {
+        mvc.perform(
+                        post("/api/v1/posts/1/comments?actorId=999999")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 }

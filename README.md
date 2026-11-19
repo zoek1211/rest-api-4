@@ -455,3 +455,19 @@ Member author = memberService.findById(actorId).orElseThrow(
 );
 Post post = postService.write(author, reqBody.title, reqBody.content);
 ```
+
+### 75강 — 댓글 작성 시 액터 필요 + Rq
+#### [025](https://github.com/zoek1211/rest-api-4/commit/025) — 댓글 작성 액터 필요 (RED)
+- `POST /api/v1/posts/{postId}/comments?actorId={id}` 의 actorId 회원이 작성자가 되어야 한다. 없거나 존재하지 않는 회원이면 401 `401-1` `로그인 후 이용해주세요.`.
+- 새 테스트 3개: actorId=4(유저2)로 작성 시 `authorId`/`authorName` 이 유저2 (임시 고정값 user1 과 달라야 의미가 있다), actorId 누락 → 401, 없는 actorId → 401.
+- 기존 댓글 작성 테스트에는 `?actorId=3` 을 붙여 이후에도 의미가 유지되게 했다.
+- 이 태그에서는 테스트가 실패하는 것이 정상 (아직 user1 로 고정되어 있고 actorId 를 보지 않는다).
+```java
+// actorId=4 → 유저2 가 작성자여야 한다 (현재는 user1 고정이라 실패)
+post("/api/v1/posts/1/comments?actorId=4") ...
+        .andExpect(jsonPath("$.data.authorId").value(4))
+        .andExpect(jsonPath("$.data.authorName").value("유저2"));
+// actorId 누락 / 없는 회원
+.andExpect(status().isUnauthorized())
+.andExpect(jsonPath("$.resultCode").value("401-1"))
+```
