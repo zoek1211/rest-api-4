@@ -2,6 +2,7 @@ package com.back.domain.member.member.controller;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -97,5 +99,45 @@ public class ApiV1MemberControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.resultCode").value("409-1"))
                 .andExpect(jsonPath("$.msg").value("user10(은)는 이미 사용중인 username 입니다."));
+    }
+
+    @Test
+    @DisplayName("내 정보")
+    void t3() throws Exception {
+        // 준비: 회원가입 (결과는 검증하지 않는다)
+        mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "user10",
+                                            "password": "12345678",
+                                            "name": "유저10"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        Member member = memberService.findLatest().get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me?actorId=%d".formatted(member.getId()))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(member.getId()))
+                // 날짜는 나노초 자릿수 표현이 달라질 수 있어 앞 20자(초 단위까지)만 비교한다.
+                .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(member.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.username").value(member.getUsername()))
+                .andExpect(jsonPath("$.name").value(member.getName()))
+                // 핵심: DTO 덕분에 password 는 응답에 아예 없어야 한다.
+                .andExpect(jsonPath("$.password").doesNotExist());
     }
 }

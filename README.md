@@ -280,3 +280,19 @@ public MemberDto me(
         @RequestParam(defaultValue = "0") int actorId
 ) { ... }
 ```
+
+#### [015](https://github.com/zoek1211/rest-api-4/commit/015) — 내 정보 성공 테스트
+
+- 가입 후 `GET /members/me?actorId=` 응답이 200 이고 id/createDate/modifyDate/username/name 이 일치하는지 검증한다.
+- `$.password` 가 존재하지 않는지까지 확인해 비밀번호 비노출을 보장한다.
+- 날짜는 표현 자릿수 차이를 피하려고 앞 20자만 `startsWith` 로 비교한다.
+
+```java
+resultActions
+        .andExpect(handler().methodName("me"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(member.getId()))
+        .andExpect(jsonPath("$.username").value(member.getUsername()))
+        .andExpect(jsonPath("$.name").value(member.getName()))
+        .andExpect(jsonPath("$.password").doesNotExist());
+```
