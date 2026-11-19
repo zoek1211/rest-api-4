@@ -71,4 +71,16 @@ public class GlobalExceptionHandler {
                 CONFLICT
         );
     }
+
+    // 로그인(회원 확인)이 안 된 요청은 401 Unauthorized. 권한 부족(403)과는 다르다.
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<RsData<Void>> handle(UnauthenticatedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "401-1",
+                        ex.getMessage()
+                ),
+                UNAUTHORIZED
+        );
+    }
 }

@@ -257,3 +257,15 @@ Member loginMember = memberService.findById(actorId).orElseThrow(
         UnauthenticatedException::new
 );
 ```
+
+#### [013](https://github.com/zoek1211/rest-api-4/commit/013) — 예외 핸들러에서 401 처리
+
+- `UnauthenticatedException` 을 `401-1` + `로그인 후 이용해주세요.` 로 응답한다. (`UNAUTHORIZED`)
+- 이제 존재하지 않는 actorId 는 500 이 아니라 401 이다.
+
+```java
+@ExceptionHandler(UnauthenticatedException.class)
+public ResponseEntity<RsData<Void>> handle(UnauthenticatedException ex) {
+    return new ResponseEntity<>(new RsData<>("401-1", ex.getMessage()), UNAUTHORIZED);
+}
+```
