@@ -18,4 +18,11 @@ public class Member extends BaseEntity {
     // 학습용 프로젝트이므로 비밀번호는 평문 저장한다. (ADR 0001 참고)
     private String password;
     private String name;
+
+    // 가입에 필요한 값만 받는 생성자. id/생성시각은 BaseEntity 가 관리한다.
+    public Member(String username, String password, String name) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+    }
 }

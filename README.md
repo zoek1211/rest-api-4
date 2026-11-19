@@ -87,3 +87,24 @@ public class Member extends BaseEntity {
     private String name;
 }
 ```
+
+
+#### [003](https://github.com/zoek1211/rest-api-4/commit/003) — 회원가입 구현
+
+- `POST /api/v1/members/join` 을 연다. 요청 DTO(`MemberJoinReqBody`)에 `@NotBlank`/`@Size` 검증을 선언하고 `@Valid` 로 켠다.
+- 서비스가 `Member` 를 만들어 저장하고, 컨트롤러는 `201-1` 로 응답한다 (`resultCode` 앞자리가 HTTP 상태코드).
+
+```java
+public record MemberJoinReqBody(
+        @NotBlank @Size(min = 4, max = 30) String username,
+        @NotBlank @Size(min = 8, max = 30) String password,
+        @NotBlank @Size(min = 2, max = 30) String name
+) {}
+
+@PostMapping("/join")
+@Transactional
+public RsData<Void> join(@RequestBody @Valid MemberJoinReqBody reqBody) {
+    Member member = memberService.join(reqBody.username, reqBody.password, reqBody.name);
+    return new RsData<>("201-1", "%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName()));
+}
+```
