@@ -57,4 +57,45 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName())));
     }
+
+    @Test
+    @DisplayName("회원가입 with duplicate username")
+    void t2() throws Exception {
+        // 먼저 한 번 가입시켜 두고(결과는 확인하지 않는다),
+        mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "user10",
+                                            "password": "12345678",
+                                            "name": "유저10"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        // 같은 username 으로 다시 가입하면 409 가 나와야 한다.
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "user10",
+                                            "password": "12345678",
+                                            "name": "유저10"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("join"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.resultCode").value("409-1"))
+                .andExpect(jsonPath("$.msg").value("user10(은)는 이미 사용중인 username 입니다."));
+    }
 }

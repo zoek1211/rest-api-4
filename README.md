@@ -186,3 +186,16 @@ resultActions
         .andExpect(jsonPath("$.resultCode").value("201-1"))
         .andExpect(jsonPath("$.msg").value("%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName())));
 ```
+
+
+#### [009](https://github.com/zoek1211/rest-api-4/commit/009) — 회원가입 실패(중복) 테스트
+
+- 같은 username 으로 두 번 가입하면 `409-1` 과 중복 메시지가 오는지 검증한다.
+- 첫 가입 결과는 확인하지 않고(준비 단계), 두 번째 요청의 응답만 검증한다.
+
+```java
+resultActions
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.resultCode").value("409-1"))
+        .andExpect(jsonPath("$.msg").value("user10(은)는 이미 사용중인 username 입니다."));
+```
