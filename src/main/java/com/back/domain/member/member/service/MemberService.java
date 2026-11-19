@@ -30,4 +30,9 @@ public class MemberService {
     public Optional<Member> findLatest() {
         return memberRepository.findTopByOrderByIdDesc();
     }
+
+    // 조회 결과가 없을 수도 있으므로 Optional 그대로 돌려주고, 없을 때의 처리는 호출하는 쪽이 정한다.
+    public Optional<Member> findById(int id) {
+        return memberRepository.findById(id);
+    }
 }

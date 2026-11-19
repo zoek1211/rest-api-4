@@ -199,3 +199,25 @@ resultActions
         .andExpect(jsonPath("$.resultCode").value("409-1"))
         .andExpect(jsonPath("$.msg").value("user10(은)는 이미 사용중인 username 입니다."));
 ```
+
+### 71강 — 내 정보
+
+#### [010](https://github.com/zoek1211/rest-api-4/commit/010) — 내 정보 API (DTO 없이)
+
+- `GET /api/v1/members/me?actorId=` 로 해당 회원을 조회해 엔티티를 그대로 반환한다.
+- 아직 DTO 가 없어서 응답에 `password` 가 포함된다. 이 문제는 다음 커밋(011)에서 해결한다.
+- 없는 actorId 는 `.get()` 이 `NoSuchElementException` 을 던져 404 가 된다. (012~013 에서 401 로 바로잡는다)
+
+```java
+@GetMapping("/me")
+@Transactional
+public Member me(int actorId) {
+    Member loginMember = memberService.findById(actorId).get();
+    return loginMember; // password 까지 노출됨
+}
+
+// MemberService
+public Optional<Member> findById(int id) {
+    return memberRepository.findById(id);
+}
+```

@@ -10,10 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 // 기존 Post/PostComment 컨트롤러와 같은 패턴: /api/v1/<복수형 리소스>
 @RestController
@@ -51,5 +48,19 @@ public class ApiV1MemberController {
                 "201-1",
                 "%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName())
         );
+    }
+
+    // 아직 로그인(인증) 수단이 없으므로, 쿼리 파라미터 actorId 로 "누구인지" 를 임시로 전달받는다. (docs/adr/0001)
+    @GetMapping("/me")
+    @Transactional
+    @Operation(summary = "내 정보")
+    public Member me(
+            int actorId
+    ) {
+        // 일단 .get() 으로 꺼낸다. 없는 회원이면 NoSuchElementException → 404 가 되는데, 이후 커밋에서 401 로 바로잡는다.
+        Member loginMember = memberService.findById(actorId).get();
+
+        // 주의: 엔티티를 그대로 반환하면 password 까지 응답에 노출된다. (다음 커밋에서 DTO 로 해결)
+        return loginMember;
     }
 }
