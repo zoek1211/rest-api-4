@@ -404,3 +404,26 @@ for (Object[] e : expected) {
             .andExpect(jsonPath("$.authorName").value(e[3]));
 }
 ```
+
+#### [022](https://github.com/zoek1211/rest-api-4/commit/022) — 댓글 작성자 (GREEN)
+
+- `PostComment` 가 `Member author` 를 다대일(지연 로딩)로 가진다. `Post.addComment(author, content)` 로 작성자를 함께 받는다.
+- 샘플 댓글 작성자: 댓글1=user1, 2=user2, 3=user3, 4=user1, 5=user2. `PostCommentDto` 에 `authorId`, `authorName` 만 추가했다.
+- 임시 처리: 댓글 작성 API 는 75강 전까지 액터를 받지 않으므로 user1(id 3)을 작성자로 고정한다 (`TODO(75강)` 주석). 75강에서 actorId 로 교체한다.
+
+```java
+// PostComment.java
+@ManyToOne(fetch = LAZY)
+private Member author;
+
+// BaseInitData.work2
+post1.addComment(user1, "댓글 1-1"); // id 1
+post1.addComment(user2, "댓글 1-2"); // id 2
+post1.addComment(user3, "댓글 1-3"); // id 3
+post2.addComment(user1, "댓글 2-1"); // id 4
+post2.addComment(user2, "댓글 2-2"); // id 5
+
+// ApiV1PostCommentController.write — 75강에서 교체될 임시 처리
+Member author = memberService.findById(3).get();
+PostComment postComment = postService.writeComment(post, author, reqBody.content);
+```

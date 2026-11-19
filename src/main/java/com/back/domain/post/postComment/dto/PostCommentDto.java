@@ -18,9 +18,9 @@ public record PostCommentDto(
                 postComment.getCreateDate(),
                 postComment.getModifyDate(),
                 postComment.getContent(),
-                // RED 스텁: 댓글 엔티티에 작성자가 아직 없어 컴파일만 되도록 빈 값을 둔다. (022 에서 실제 값으로 교체)
-                0,
-                null
+                // Member 통째가 아니라 id/name 만 노출한다. (비밀번호 등 유출 방지)
+                postComment.getAuthor().getId(),
+                postComment.getAuthor().getName()
         );
     }
 }
