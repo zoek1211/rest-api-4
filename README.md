@@ -606,3 +606,20 @@ delete("/api/v1/posts/1/comments/1")
     .andExpect(status().isUnauthorized())
     .andExpect(jsonPath("$.resultCode").value("401-1"));
 ```
+#### [034](https://github.com/zoek1211/rest-api-4/commit/034) — 댓글 삭제는 작성자만 (GREEN)
+- `PostComment.checkActorCanDelete(actor)` 추가. 삭제 컨트롤러가 `rq.getActor()`(401) 다음에 호출한다(403). 테스트 36개 모두 통과.
+- 글 작성자라도 댓글 작성자가 아니면 403 이다. 작성자 비교는 77강과 같이 id 로 한다(`author` 가 LAZY 프록시일 수 있어 엔티티 equals 는 쓰지 않음).
+```java
+// PostComment
+public void checkActorCanDelete(Member actor) { checkActorIsAuthor(actor); }
+
+private void checkActorIsAuthor(Member actor) {
+    if (actor.getId() != author.getId()) throw new AccessDeniedException();
+}
+
+// 컨트롤러
+Member actor = rq.getActor();            // 401
+Post post = postService.findById(postId).get();
+PostComment postComment = post.findCommentById(id).get();
+postComment.checkActorCanDelete(actor);  // 403
+```

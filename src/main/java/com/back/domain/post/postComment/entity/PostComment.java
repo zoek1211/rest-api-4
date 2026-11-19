@@ -2,6 +2,7 @@ package com.back.domain.post.postComment.entity;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.post.entity.Post;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -29,5 +30,15 @@ public class PostComment extends BaseEntity {
 
     public void modify(String content) {
         this.content = content;
+    }
+
+    // 댓글 삭제 권한은 댓글(PostComment)이 안다. 글 작성자라도 남의 댓글은 지울 수 없다.
+    public void checkActorCanDelete(Member actor) {
+        checkActorIsAuthor(actor);
+    }
+
+    // Post 와 같은 이유로 엔티티 equals 대신 id 로 비교한다(author 가 LAZY 프록시일 수 있음).
+    private void checkActorIsAuthor(Member actor) {
+        if (actor.getId() != author.getId()) throw new AccessDeniedException();
     }
 }

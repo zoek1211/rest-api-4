@@ -60,8 +60,10 @@ public class ApiV1PostCommentController {
             @PathVariable int postId,
             @PathVariable int id
     ) {
+        Member actor = rq.getActor(); // actorId 없음/무효 -> 401
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+        postComment.checkActorCanDelete(actor); // 댓글 작성자가 아니면 -> 403
 
         postService.deleteComment(post, postComment);
 
