@@ -170,3 +170,19 @@ public class MemberDuplicateUsernameException extends RuntimeException {
 memberRepository.findByUsername(username)
         .ifPresent(_ -> { throw new MemberDuplicateUsernameException(username); });
 ```
+
+
+#### [008](https://github.com/zoek1211/rest-api-4/commit/008) — 회원가입 성공 테스트
+
+- 뒤늦게 `ApiV1MemberControllerTest` 에 회원가입 성공 테스트를 추가한다.
+- 응답에 회원 정보가 없으므로, 테스트용으로 `findLatest()` (`findTopByOrderByIdDesc`)를 서비스/레포지토리에 추가해 방금 가입한 회원을 꺼낸다.
+
+```java
+Member member = memberService.findLatest().get();
+
+resultActions
+        .andExpect(handler().methodName("join"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.resultCode").value("201-1"))
+        .andExpect(jsonPath("$.msg").value("%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName())));
+```

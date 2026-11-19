@@ -6,6 +6,8 @@ import com.back.global.globalExceptionHandler.MemberDuplicateUsernameException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 // 비즈니스 로직은 컨트롤러가 아니라 서비스가 맡는다.
 @Service
 @RequiredArgsConstructor
@@ -23,5 +25,9 @@ public class MemberService {
         Member member = new Member(username, password, name);
 
         return memberRepository.save(member);
+    }
+
+    public Optional<Member> findLatest() {
+        return memberRepository.findTopByOrderByIdDesc();
     }
 }
