@@ -2,6 +2,7 @@ package com.back.domain.post.post.entity;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.postComment.entity.PostComment;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.jpa.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -40,6 +41,11 @@ public class Post extends BaseEntity {
     public void modify(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+
+    // 삭제 권한 규칙은 글(Post)이 가장 잘 안다. 컨트롤러에 if 를 두면 수정/다른 진입점마다 중복되기 쉽다.
+    public void checkActorCanDelete(Member actor) {
+        if (!actor.equals(author)) throw new AccessDeniedException();
     }
 
     public PostComment addComment(Member author, String content) {

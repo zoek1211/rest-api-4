@@ -542,3 +542,17 @@ public ResponseEntity<RsData<Void>> handle(AccessDeniedException ex) {
     return new ResponseEntity<>(new RsData<>("403-1", ex.getMessage()), FORBIDDEN);
 }
 ```
+#### [030](https://github.com/zoek1211/rest-api-4/commit/030) — 삭제 권한 검사를 Post 로 (REFACTOR)
+- 컨트롤러의 `if` 비교를 `Post.checkActorCanDelete(actor)` 로 옮겼다. 동작은 그대로(테스트 31개 통과).
+- "작성자만 삭제 가능" 이라는 규칙은 데이터(author)를 가진 엔티티가 아는 것이 자연스럽다. 컨트롤러는 호출만 한다.
+```java
+// Post 엔티티
+public void checkActorCanDelete(Member actor) {
+    if (!actor.equals(author)) throw new AccessDeniedException();
+}
+
+// 컨트롤러
+Member actor = rq.getActor();
+Post post = postService.findById(id).get();
+post.checkActorCanDelete(actor);
+```

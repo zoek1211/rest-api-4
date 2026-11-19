@@ -4,7 +4,6 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
-import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,8 +57,8 @@ public class ApiV1PostController {
 
         Post post = postService.findById(id).get();
 
-        // 글 삭제는 작성자만 가능하다. 다른 회원이면 403.
-        if (!actor.equals(post.getAuthor())) throw new AccessDeniedException();
+        // 작성자 비교 규칙은 엔티티가 가진다. 권한이 없으면 403.
+        post.checkActorCanDelete(actor);
 
         postService.delete(post);
 
