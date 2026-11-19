@@ -269,3 +269,14 @@ public ResponseEntity<RsData<Void>> handle(UnauthenticatedException ex) {
     return new ResponseEntity<>(new RsData<>("401-1", ex.getMessage()), UNAUTHORIZED);
 }
 ```
+
+#### [014](https://github.com/zoek1211/rest-api-4/commit/014) — actorId 미입력도 401
+
+- `actorId` 를 안 보내면 `int` 바인딩이 실패해 400/500 같은 엉뚱한 오류가 난다.
+- `@RequestParam(defaultValue = "0")` 으로 기본값 0 을 주면 존재하지 않는 회원 경로로 통일되어 401 이 된다.
+
+```java
+public MemberDto me(
+        @RequestParam(defaultValue = "0") int actorId
+) { ... }
+```

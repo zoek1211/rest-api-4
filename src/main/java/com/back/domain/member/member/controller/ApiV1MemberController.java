@@ -57,7 +57,9 @@ public class ApiV1MemberController {
     @Transactional
     @Operation(summary = "내 정보")
     public MemberDto me(
-            int actorId
+            // actorId 가 아예 없으면 기본값 0 을 쓴다. 0 번 회원은 존재하지 않으므로
+            // "없는 회원" 경로(401)로 합쳐져, 파라미터 누락이 400/500 이 되지 않는다.
+            @RequestParam(defaultValue = "0") int actorId
     ) {
         // 없는 회원이면 NoSuchElementException(404) 대신 UnauthenticatedException 을 던진다.
         // (핸들러는 다음 커밋에서 추가하므로, 이 커밋에서는 아직 401 이 아니라 500 이 된다)
