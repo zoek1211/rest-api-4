@@ -687,3 +687,10 @@ post("/api/v1/posts/999999/comments")
     .andExpect(status().isUnauthorized())
     .andExpect(jsonPath("$.resultCode").value("401-1"));
 ```
+#### [039](https://github.com/zoek1211/rest-api-4/commit/039) — 댓글 작성도 액터 확인을 먼저 (GREEN)
+- 댓글 작성 컨트롤러가 글을 찾기 전에 `rq.getActor()` 를 먼저 호출한다. 다른 엔드포인트와 같은 401 → 404 → 403 순서가 된다. 테스트 45개 모두 통과.
+- 글을 먼저 찾으면 인증되지 않은 요청에게도 "그 글이 있다/없다"(404 vs 401)가 드러난다.
+```java
+Member author = rq.getActor();                  // 401
+Post post = postService.findById(postId).get(); // 404
+```

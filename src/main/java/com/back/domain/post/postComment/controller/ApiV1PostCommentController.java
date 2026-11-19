@@ -117,10 +117,12 @@ public class ApiV1PostCommentController {
             @PathVariable int postId,
             @Valid @RequestBody PostCommentWriteReqBody reqBody
     ) {
-        Post post = postService.findById(postId).get();
-
-        // 댓글 작성은 로그인한 회원만 가능하다. 액터를 얻는 방법은 Rq 가 알고 있다. (없으면 401)
+        // 댓글 작성은 액터가 있어야 가능하다. 액터를 얻는 방법은 Rq 가 알고 있다. (없으면 401)
+        // 순서가 중요하다: 인증(401) -> 존재 확인(404) -> 권한(403).
+        // 글을 먼저 찾으면 인증 안 된 요청에게 글의 존재 여부가 새어 나간다.
         Member author = rq.getActor();
+
+        Post post = postService.findById(postId).get();
 
         PostComment postComment = postService.writeComment(post, author, reqBody.content);
 
