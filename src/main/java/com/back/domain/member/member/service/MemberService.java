@@ -27,6 +27,11 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    // 샘플 데이터가 이미 있는지(재시작 시 중복 생성 방지) 판단하는 용도.
+    public long count() {
+        return memberRepository.count();
+    }
+
     public Optional<Member> findLatest() {
         return memberRepository.findTopByOrderByIdDesc();
     }

@@ -326,3 +326,21 @@ for (int i = 0; i < samples.length; i++) {
             .andExpect(jsonPath("$.name").value(samples[i][1]));
 }
 ```
+
+#### [018](https://github.com/zoek1211/rest-api-4/commit/018) — 샘플 회원 6명 생성 (GREEN)
+
+- `BaseInitData` 에 회원 생성(`work1`)을 추가하고, 글 생성(`work2`)보다 먼저 실행한다.
+- 저장 순서대로 id 가 1~6 이 된다: system, admin, user1, user2, user3, user4 (비밀번호는 모두 `12345678`).
+- 회원 수(`memberService.count()`)가 0보다 크면 건너뛰어 재시작 시 중복 생성을 막는다.
+
+```java
+@Transactional
+public void work1() {
+    if (memberService.count() > 0) return; // 중복 생성 방지
+
+    memberService.join("system", "12345678", "시스템"); // id 1
+    memberService.join("admin", "12345678", "관리자");  // id 2
+    memberService.join("user1", "12345678", "유저1");   // id 3
+    // ... user2, user3, user4
+}
+```
