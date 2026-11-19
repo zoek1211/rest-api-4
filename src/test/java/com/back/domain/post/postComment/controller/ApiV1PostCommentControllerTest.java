@@ -164,4 +164,41 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.content").value("내용"));
     }
+
+    @Test
+    @DisplayName("댓글 단건조회, 작성자 정보 포함")
+    void t10() throws Exception {
+        // 샘플 데이터 전제(BaseInitData): 댓글1=user1(3), 2=user2(4), 3=user3(5) 는 글1, 댓글4=user1(3), 5=user2(4) 는 글2.
+        // 기대값은 엔티티가 아니라 고정값으로 쓴다. (postId, 댓글 id, authorId, authorName)
+        Object[][] expected = {
+                {1, 1, 3, "유저1"},
+                {1, 2, 4, "유저2"},
+                {1, 3, 5, "유저3"},
+                {2, 4, 3, "유저1"},
+                {2, 5, 4, "유저2"},
+        };
+
+        for (Object[] e : expected) {
+            mvc.perform(get("/api/v1/posts/%d/comments/%d".formatted(e[0], e[1])))
+                    .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                    .andExpect(handler().methodName("getItem"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.authorId").value(e[2]))
+                    .andExpect(jsonPath("$.authorName").value(e[3]));
+        }
+    }
+
+    @Test
+    @DisplayName("댓글 다건조회, 작성자 정보 포함")
+    void t11() throws Exception {
+        mvc.perform(get("/api/v1/posts/1/comments"))
+                .andExpect(handler().methodName("getItems"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].authorId").value(3))
+                .andExpect(jsonPath("$[0].authorName").value("유저1"))
+                .andExpect(jsonPath("$[1].authorId").value(4))
+                .andExpect(jsonPath("$[1].authorName").value("유저2"))
+                .andExpect(jsonPath("$[2].authorId").value(5))
+                .andExpect(jsonPath("$[2].authorName").value("유저3"));
+    }
 }

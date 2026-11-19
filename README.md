@@ -384,3 +384,23 @@ post.getAuthor().getName()
 Member author = memberService.findById(3).get();
 Post post = postService.write(author, reqBody.title, reqBody.content);
 ```
+
+#### [021](https://github.com/zoek1211/rest-api-4/commit/021) — 댓글 응답에 작성자 (RED)
+
+- 댓글 조회 응답의 `authorId`, `authorName` 과 샘플 댓글 작성자(댓글1=user1, 2=user2, 3=user3, 4=user1, 5=user2)를 검증하는 테스트(단건·다건)를 추가했다.
+- 글과 마찬가지로 기대값은 엔티티가 아니라 고정값이다.
+- 컴파일을 위해 `PostCommentDto` 에 `authorId`(0), `authorName`(null) 스텁 필드만 추가했다.
+- 이 태그에서는 테스트가 실패하는 것이 정상 (작성자가 0/null 로 내려온다).
+
+```java
+// (postId, 댓글 id, authorId, authorName)
+Object[][] expected = {
+        {1, 1, 3, "유저1"}, {1, 2, 4, "유저2"}, {1, 3, 5, "유저3"},
+        {2, 4, 3, "유저1"}, {2, 5, 4, "유저2"},
+};
+for (Object[] e : expected) {
+    mvc.perform(get("/api/v1/posts/%d/comments/%d".formatted(e[0], e[1])))
+            .andExpect(jsonPath("$.authorId").value(e[2]))
+            .andExpect(jsonPath("$.authorName").value(e[3]));
+}
+```
