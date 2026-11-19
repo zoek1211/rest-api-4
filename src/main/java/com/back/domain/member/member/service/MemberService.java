@@ -2,6 +2,7 @@ package com.back.domain.member.member.service;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.repository.MemberRepository;
+import com.back.global.globalExceptionHandler.MemberDuplicateUsernameException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,7 @@ public class MemberService {
         // 람다 파라미터는 쓰지 않으므로 _ (unnamed variable, Java 22+) 로 둔다.
         memberRepository.findByUsername(username)
                 .ifPresent(_ -> {
-                    throw new IllegalArgumentException(
-                            "%s(은)는 이미 사용중인 username 입니다.".formatted(username)
-                    );
+                    throw new MemberDuplicateUsernameException(username);
                 });
 
         Member member = new Member(username, password, name);

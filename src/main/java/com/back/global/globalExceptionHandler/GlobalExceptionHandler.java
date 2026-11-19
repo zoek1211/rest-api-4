@@ -60,8 +60,9 @@ public class GlobalExceptionHandler {
     }
 
     // 중복 username 은 요청과 서버 상태가 충돌한 것이므로 409 Conflict.
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<RsData<Void>> handle(IllegalArgumentException ex) {
+    // 전용 예외를 두면 다른 곳의 IllegalArgumentException 이 409 로 오인되지 않는다.
+    @ExceptionHandler(MemberDuplicateUsernameException.class)
+    public ResponseEntity<RsData<Void>> handle(MemberDuplicateUsernameException ex) {
         return new ResponseEntity<>(
                 new RsData<>(
                         "409-1",

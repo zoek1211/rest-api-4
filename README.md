@@ -152,3 +152,21 @@ public ResponseEntity<RsData<Void>> handle(IllegalArgumentException ex) {
     return new ResponseEntity<>(new RsData<>("409-1", ex.getMessage()), CONFLICT);
 }
 ```
+
+
+#### [007](https://github.com/zoek1211/rest-api-4/commit/007) — MemberDuplicateUsernameException 도입
+
+- 너무 추상적인 `IllegalArgumentException` 대신 `MemberDuplicateUsernameException` 을 던지고, 핸들러도 이 예외만 409 로 처리한다.
+- 응답(`409-1`, 같은 메시지)은 그대로이고 예외 타입만 구체화됐다. 메시지 포맷은 예외 안으로 모았다.
+
+```java
+public class MemberDuplicateUsernameException extends RuntimeException {
+    public MemberDuplicateUsernameException(String username) {
+        super("%s(은)는 이미 사용중인 username 입니다.".formatted(username));
+    }
+}
+
+// MemberService
+memberRepository.findByUsername(username)
+        .ifPresent(_ -> { throw new MemberDuplicateUsernameException(username); });
+```
