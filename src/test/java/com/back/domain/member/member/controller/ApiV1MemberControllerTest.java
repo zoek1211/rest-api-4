@@ -158,4 +158,34 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
+
+    @Test
+    @DisplayName("샘플 회원 6명 - 회원 번호 1~6 순서")
+    void t5() throws Exception {
+        // BaseInitData 가 테스트 프로필에서도 돌기 때문에, 가입 없이 바로 actorId 로 조회할 수 있어야 한다.
+        // 문서와 다음 강의 테스트가 이 번호를 믿고 쓰므로 순서(id)까지 고정해서 검증한다.
+        String[][] samples = {
+                {"system", "시스템"},
+                {"admin", "관리자"},
+                {"user1", "유저1"},
+                {"user2", "유저2"},
+                {"user3", "유저3"},
+                {"user4", "유저4"},
+        };
+
+        for (int i = 0; i < samples.length; i++) {
+            int id = i + 1;
+
+            mvc
+                    .perform(get("/api/v1/members/me?actorId=%d".formatted(id)))
+                    .andDo(print())
+                    .andExpect(handler().handlerType(ApiV1MemberController.class))
+                    .andExpect(handler().methodName("me"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(id))
+                    .andExpect(jsonPath("$.username").value(samples[i][0]))
+                    .andExpect(jsonPath("$.name").value(samples[i][1]))
+                    .andExpect(jsonPath("$.password").doesNotExist());
+        }
+    }
 }

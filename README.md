@@ -307,3 +307,22 @@ resultActions
         .andExpect(jsonPath("$.resultCode").value("401-1"))
         .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
 ```
+
+### 72강 — 샘플 회원 6명
+
+#### [017](https://github.com/zoek1211/rest-api-4/commit/017) — 샘플 회원 존재 검증 테스트 (RED)
+
+- 가입 없이 `GET /members/me?actorId=1~6` 을 호출해 system, admin, user1~user4 가 순서대로(id 1~6) 존재하는지 검증한다.
+- 번호까지 고정해 두어야 다음 강에서 글의 작성자로 번호를 믿고 쓸 수 있다.
+- 이 태그에서는 테스트가 실패하는 것이 정상 (샘플 회원이 아직 없어 401 이 온다).
+
+```java
+for (int i = 0; i < samples.length; i++) {
+    int id = i + 1;
+    mvc.perform(get("/api/v1/members/me?actorId=%d".formatted(id)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(id))
+            .andExpect(jsonPath("$.username").value(samples[i][0]))
+            .andExpect(jsonPath("$.name").value(samples[i][1]));
+}
+```
