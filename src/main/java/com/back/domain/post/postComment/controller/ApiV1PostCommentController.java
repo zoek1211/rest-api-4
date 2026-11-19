@@ -89,8 +89,10 @@ public class ApiV1PostCommentController {
             @PathVariable int id,
             @RequestBody @Valid PostCommentModifyReqBody reqBody
     ) {
+        Member actor = rq.getActor(); // actorId 없음/무효 -> 401
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+        postComment.checkActorCanModify(actor); // 댓글 작성자가 아니면 -> 403
 
         postService.modifyComment(postComment, reqBody.content);
 

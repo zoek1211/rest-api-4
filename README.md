@@ -640,3 +640,17 @@ put("/api/v1/posts/1/comments/1")
     .andExpect(status().isUnauthorized())
     .andExpect(jsonPath("$.resultCode").value("401-1"));
 ```
+#### [036](https://github.com/zoek1211/rest-api-4/commit/036) — 댓글 수정은 작성자만 (GREEN)
+- `PostComment.checkActorCanModify(actor)` 추가. 수정 컨트롤러가 `rq.getActor()`(401) 다음에 호출한다(403). 테스트 39개 모두 통과.
+- 규칙은 삭제와 같지만 의도가 드러나도록 메서드를 따로 둔다. 글 작성자라도 댓글 작성자가 아니면 403 이다.
+```java
+// PostComment
+public void checkActorCanModify(Member actor) { checkActorIsAuthor(actor); }
+
+// 컨트롤러
+Member actor = rq.getActor();            // 401
+Post post = postService.findById(postId).get();
+PostComment postComment = post.findCommentById(id).get();
+postComment.checkActorCanModify(actor);  // 403
+postService.modifyComment(postComment, reqBody.content);
+```

@@ -37,6 +37,11 @@ public class PostComment extends BaseEntity {
         checkActorIsAuthor(actor);
     }
 
+    // 수정도 삭제와 같은 규칙(작성자만)이지만, 나중에 규칙이 갈라질 수 있으니 의도가 드러나는 이름으로 따로 둔다.
+    public void checkActorCanModify(Member actor) {
+        checkActorIsAuthor(actor);
+    }
+
     // Post 와 같은 이유로 엔티티 equals 대신 id 로 비교한다(author 가 LAZY 프록시일 수 있음).
     private void checkActorIsAuthor(Member actor) {
         if (actor.getId() != author.getId()) throw new AccessDeniedException();
