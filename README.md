@@ -108,3 +108,19 @@ public RsData<Void> join(@RequestBody @Valid MemberJoinReqBody reqBody) {
     return new RsData<>("201-1", "%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName()));
 }
 ```
+
+
+#### [004](https://github.com/zoek1211/rest-api-4/commit/004) — username 중복 체크
+
+- `findByUsername` 쿼리 메서드를 추가하고, 가입 전에 같은 username 이 있으면 `IllegalArgumentException` 으로 막는다.
+- 아직 예외 핸들러가 없어서 응답은 500 이다 (다음 커밋에서 409 로 바꾼다).
+
+```java
+Optional<Member> opMember = memberRepository.findByUsername(username);
+
+if (opMember.isPresent()) {
+    throw new IllegalArgumentException(
+            "%s(은)는 이미 사용중인 username 입니다.".formatted(username)
+    );
+}
+```
