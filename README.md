@@ -67,3 +67,23 @@ public record RsData<T>(String resultCode, @JsonIgnore int statusCode, String ms
   - 액터: 지금 요청을 보내는 회원 (`?actorId=`)
   - 작성자: 글·댓글을 쓴 회원
 - [ADR 0001](./docs/adr/0001-actor-id-query-param.md): 인증을 `?actorId` 로 대신하고, 나중에 교체하기 쉽게 액터 조회를 한 곳(`Rq`)에 모으기로 했다.
+
+
+### 70강 — 회원가입
+
+#### [002](https://github.com/zoek1211/rest-api-4/commit/002) — 회원 도메인 뼈대
+
+- `Member` 엔티티, `MemberRepository`, `MemberService`, `ApiV1MemberController` 의 빈 껍데기를 만든다. 아직 API 는 없다.
+- `username` 에 `unique = true` 를 걸어 DB 레벨에서도 중복을 막을 준비를 한다. 비밀번호는 평문(학습용, ADR 0001).
+
+```java
+@Entity
+@Getter
+@NoArgsConstructor
+public class Member extends BaseEntity {
+    @Column(unique = true) // 로그인 아이디 역할이라 유일해야 한다
+    private String username;
+    private String password;
+    private String name;
+}
+```
